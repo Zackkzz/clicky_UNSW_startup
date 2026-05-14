@@ -1,0 +1,34 @@
+{
+  "societies": [
+    {
+      "id": "soc-coding",
+      "name": "Campus Coding Collective",
+      "description": "Weekly builds, workshops, and hack nights for students who like shipping software.",
+      "tags": ["tech", "careers", "social"]
+    },
+    {
+      "id": "soc-outdoors",
+      "name": "Trail & Coast Society",
+      "description": "Day hikes, snorkelling trips, and beginner-friendly outdoor weekends.",
+      "tags": ["wellbeing", "social", "outdoors"]
+    }
+  ],
+  "activities": [
+    {
+      "id": "act-meetup-1",
+      "societyId": "soc-coding",
+      "title": "Ship your first React Native screen",
+      "startsAt": "2026-05-22T10:00:00.000Z",
+      "location": "Main Library — Group Study 3",
+      "ticketUrl": "https://example.com/tickets/react-native-101"
+    },
+    {
+      "id": "act-hike-1",
+      "societyId": "soc-outdoors",
+      "title": "Coastal walk + sunset picnic",
+      "startsAt": "2026-05-24T06:30:00.000Z",
+      "location": "Meet at Roundhouse lawn",
+      "ticketUrl": "https://example.com/tickets/coastal-walk"
+    }
+  ]
+}
