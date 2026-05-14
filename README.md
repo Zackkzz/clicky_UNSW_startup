@@ -1,6 +1,6 @@
 # Initial Plan — Student ARC MVP (Native-First)
 
-**Document purpose:** single source of truth for scope, experience, stories, tech choices, and delivery rhythm for a **two-person full-stack** team.
+**Document purpose:** single source of truth for scope, experience, stories, tech choices, and delivery rhythm for the team.
 
 **Product pillars (from scope):**
 
