@@ -1,0 +1,44 @@
+services:
+  app:
+    build: .
+    container_name: clicky-expo-dev
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "19000:19000"
+      - "19001:19001"
+    extra_hosts:
+      # Lets the Expo container reach services bound on the host (e.g. Supabase API on :54321).
+      - "host.docker.internal:host-gateway"
+    environment:
+      NODE_ENV: development
+      # Bind mounts (especially on Windows/macOS Docker) often need polling for reliable reloads.
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+
+  # Runs `supabase start` against the host Docker Engine (requires /var/run/docker.sock).
+  # Start with: docker compose --profile supabase up -d --build
+  # This keeps a long-lived wrapper container; the actual Supabase stack is sibling containers on the host.
+  supabase_local:
+    profiles: ["supabase"]
+    image: supabase/cli:2.98.2
+    container_name: clicky-supabase-local-cli
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint:
+      [
+        "/bin/sh",
+        "-c",
+        "cd /workspace && supabase start && exec tail -f /dev/null",
+      ]
+    restart: "no"

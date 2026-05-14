@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log*
+yarn-error.log*
+.expo
+dist
+web-build
+.git
+.DS_Store
+*.pem
+.env
+.env.*.local
+android
+ios
+.kotlin
+.metro-health-check*

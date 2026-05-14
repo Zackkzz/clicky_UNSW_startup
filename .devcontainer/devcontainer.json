@@ -1,0 +1,13 @@
+{
+  "name": "clicky-UNSW-startup",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [8081, 8082, 19000, 19001, 54321, 54323],
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["expo.vscode-expo-tools"]
+    }
+  }
+}
