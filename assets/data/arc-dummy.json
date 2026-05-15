@@ -18,7 +18,11 @@
       "id": "act-meetup-1",
       "societyId": "soc-coding",
       "title": "Ship your first React Native screen",
+      "description": null,
+      "tags": ["tech", "workshop"],
+      "eventType": "Class/Workshop",
       "startsAt": "2026-05-22T10:00:00.000Z",
+      "endsAt": "2026-05-22T12:00:00.000Z",
       "location": "Main Library — Group Study 3",
       "ticketUrl": "https://example.com/tickets/react-native-101"
     },
@@ -26,7 +30,11 @@
       "id": "act-hike-1",
       "societyId": "soc-outdoors",
       "title": "Coastal walk + sunset picnic",
+      "description": null,
+      "tags": ["social", "outdoors"],
+      "eventType": "Party/BBQ/Social",
       "startsAt": "2026-05-24T06:30:00.000Z",
+      "endsAt": "2026-05-24T10:30:00.000Z",
       "location": "Meet at Roundhouse lawn",
       "ticketUrl": "https://example.com/tickets/coastal-walk"
     }

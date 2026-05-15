@@ -22,6 +22,19 @@ Add your Supabase **Project URL** and **anon key** to `.env` as `EXPO_PUBLIC_SUP
 npm run start
 ```
 
+## Agent skills (Cursor)
+
+Everything is under **`.agents/`** (often gitignored locally—copy from your template or `npx skills add` as needed):
+
+| Path | Contents |
+|------|----------|
+| **`.agents/skills/`** | Matt Pocock engineering/productivity/misc skills (`README.md` at repo root of that pack). |
+| **`.agents/agent-skills/`** | Supabase official agent skills (`skills/supabase`, `skills/supabase-postgres-best-practices`). |
+
+**Optional:** **`vendor/supabase-agent-skills`** git submodule — same Supabase skills for machines where `.agents` is not checked in. After clone: `git submodule update --init --depth 1 vendor/supabase-agent-skills`.
+
+Cursor loads **`.cursor/rules/project-agent-skills.mdc`**, which maps tasks → which `SKILL.md` to read.
+
 ## Docker / Dev Container (virtual dev environment)
 
 This repo includes a **Node-only** Docker setup so everyone gets the same toolchain without installing Node on the host. It is aimed at **Expo dev server + Metro** — not at running Android emulators or iOS simulators inside the container (those usually stay on the host, or you use a physical device).
@@ -89,6 +102,28 @@ npm run supabase:start
 npm run supabase:status
 ```
 
+## Database schema & Excel seed
+
+| Table | Purpose |
+|-------|---------|
+| `profiles` | 1:1 with `auth.users`; auto-created on signup (`handle_new_user`). |
+| `profile_interests` | Onboarding tags per user (for ranking / filters). |
+| `societies` | Clubs from **Club Details**; `id` = Rubric `societyid`; `category` + **`tags`** (seed puts category into `tags` when no finer facets exist). |
+| `activities` | Events from **Event Details**; **`event_type`** (single label) + **`tags`** (same value from the sheet for now); optional **`description`** for future ARC body copy; `registration_url` from ticket column. |
+| `forum_posts` / `forum_replies` | Peer Q&A threads. |
+| `content_reports` | Safety / moderation reports. |
+
+Migrations: `supabase/migrations/20260514120000_initial_schema.sql` (base tables, RLS, triggers) and `20260515100000_arc_dummy_schema_alignment.sql` (`societies.tags`, `activities.description`, `activities.tags` + GIN indexes + backfill).
+
+**Load dummy data from your workbook**
+
+1. Install script deps (once): `pip install -r scripts/requirements.txt` (Windows needs **`tzdata`** for `Australia/Sydney` when building seeds).
+2. Generate SQL: `python scripts/build_seed_from_xlsx.py`  
+   Optional path: `python scripts/build_seed_from_xlsx.py "C:\path\to\Event Details from Feb-Mar 2026.xlsx"`
+3. Applies on **`supabase db reset`** after migrations, via `supabase/seed.sql` + `supabase/seeds/from_xlsx.sql` (see `supabase/config.toml` → `[db.seed] sql_paths`).
+
+Current generated extract: **388 societies**, **1208 activities** (one spreadsheet row skipped if dates were not parseable).
+
 ## Project layout (initial)
 
 | Path | Purpose |
@@ -99,8 +134,15 @@ npm run supabase:status
 | `lib/supabase.ts` | Supabase client (null until env vars are set) |
 | `providers/AppProviders.tsx` | `QueryClientProvider` |
 | `stores/` | Zustand stores |
+| `docs/PRODUCT_SCHEMA.md` | Product schema from `Schema.docx` + map to Postgres / gaps / append workflow |
 | `docs/INITIAL_MVP_PLAN.md` | Scope, stories, delivery plan |
-| `supabase/` | Local Supabase config (`config.toml`), migrations, seed |
+| `supabase/migrations/` | Postgres schema (societies, activities, forum, RLS) |
+| `supabase/seeds/from_xlsx.sql` | Generated Rubric dummy data (run `scripts/build_seed_from_xlsx.py`) |
+| `scripts/build_seed_from_xlsx.py` | Excel → SQL seed generator |
+| `.agents/skills/` | Matt Pocock agent skills (engineering, productivity, …) |
+| `.agents/agent-skills/` | Supabase official [`agent-skills`](https://github.com/supabase/agent-skills) copy |
+| `.cursor/rules/project-agent-skills.mdc` | Cursor: which `SKILL.md` to read (Matt + Supabase + optional vendor fallback) |
+| `vendor/supabase-agent-skills/` | Optional git submodule (same Supabase skills if `.agents` absent on clone) |
 | `Dockerfile`, `docker-compose.yml` | Dev container / Compose (`app` + optional `supabase_local`) |
 | `.devcontainer/devcontainer.json` | Cursor / VS Code Dev Container config |
 
@@ -113,4 +155,5 @@ UI and queries should go through **`bundledArcRepository`** (or future `httpArcR
 - `npm run start` — Expo dev server
 - `npm run start:tunnel` — Expo with tunnel (handy with Docker or restrictive LANs)
 - `npm run supabase:start` / `supabase:stop` / `supabase:status` — local Supabase via CLI on the host
+- `npm run seed:build` — regenerate `supabase/seeds/from_xlsx.sql` from the default OneDrive workbook path (override with CLI arg in script)
 - `npm run android` / `npm run ios` / `npm run web`

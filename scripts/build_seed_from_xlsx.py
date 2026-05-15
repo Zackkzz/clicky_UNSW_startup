@@ -1,0 +1,221 @@
+"""
+Generate supabase/seeds/from_xlsx.sql from the Rubric export workbook.
+
+Usage:
+  python scripts/build_seed_from_xlsx.py
+  python scripts/build_seed_from_xlsx.py "C:\\path\\to\\Event Details from Feb-Mar 2026.xlsx"
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from openpyxl import load_workbook
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT_PATH = ROOT / "supabase" / "seeds" / "from_xlsx.sql"
+
+DEFAULT_XLSX = Path(r"C:\Users\a2638\OneDrive\Desktop\Event Details from Feb-Mar 2026.xlsx")
+
+SOCIETY_LINE = re.compile(
+    r"^(.+?):\s*https://admin\.hellorubric\.com/society\?societyid=(\d+)\s*$",
+    re.DOTALL | re.IGNORECASE,
+)
+
+SYD = ZoneInfo("Australia/Sydney")
+
+
+def sql_str(value: str | None) -> str:
+    if value is None or value == "":
+        return "NULL"
+    cleaned = str(value).replace("\u0000", "").strip()
+    if not cleaned:
+        return "NULL"
+    return "'" + cleaned.replace("'", "''") + "'"
+
+
+def sql_ts(dt: datetime | None) -> str:
+    if dt is None:
+        return "NULL"
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=SYD)
+    else:
+        dt = dt.astimezone(SYD)
+    return f"timestamptz '{dt.isoformat()}'"
+
+
+def sql_text_array(values: list[str]) -> str:
+    """Postgres text[] literal for non-empty tag lists."""
+    cleaned = [v.replace("'", "''").strip() for v in values if v and str(v).strip()]
+    if not cleaned:
+        return "'{}'::text[]"
+    inner = ",".join("'" + v + "'" for v in cleaned)
+    return f"ARRAY[{inner}]::text[]"
+
+
+def normalize_club_name(raw: str) -> str:
+    s = raw.replace("\r", "\n")
+    s = re.sub(r"\s+", " ", s)
+    return s.strip()
+
+
+def parse_society_cell(cell: str | None) -> tuple[str, int, str] | None:
+    if cell is None:
+        return None
+    m = SOCIETY_LINE.match(normalize_club_name(cell))
+    if not m:
+        return None
+    name = re.sub(r"\s+", " ", m.group(1).strip())
+    sid = int(m.group(2))
+    url = f"https://admin.hellorubric.com/society?societyid={sid}"
+    return name, sid, url
+
+
+def main() -> None:
+    xlsx = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_XLSX
+    if not xlsx.is_file():
+        print(f"Workbook not found: {xlsx}", file=sys.stderr)
+        sys.exit(1)
+
+    societies: dict[int, dict] = {}
+
+    wb = load_workbook(xlsx, read_only=True, data_only=True)
+
+    club_sheet = wb["Club Details"]
+    club_rows = club_sheet.iter_rows(min_row=2, values_only=True)
+    for row in club_rows:
+        if not row or not row[0]:
+            continue
+        parsed = parse_society_cell(str(row[0]))
+        if not parsed:
+            continue
+        name, sid, url = parsed
+        desc = row[1] if len(row) > 1 else None
+        cat = row[2] if len(row) > 2 else None
+        contact = row[3] if len(row) > 3 else None
+        societies[sid] = {
+            "name": name,
+            "description": desc if isinstance(desc, str) else None,
+            "category": cat if isinstance(cat, str) else None,
+            "contact_email": contact if isinstance(contact, str) else None,
+            "rubric_admin_url": url,
+        }
+
+    event_sheet = wb["Event Details"]
+    event_rows = event_sheet.iter_rows(min_row=2, values_only=True)
+    activities: list[dict] = []
+
+    for row in event_rows:
+        if not row or not row[0]:
+            continue
+        title = row[0]
+        club_cell = row[1] if len(row) > 1 else None
+        event_type = row[2] if len(row) > 2 else None
+        start = row[3] if len(row) > 3 else None
+        end = row[4] if len(row) > 4 else None
+        location = row[5] if len(row) > 5 else None
+        ticket = row[6] if len(row) > 6 else None
+
+        parsed = parse_society_cell(str(club_cell) if club_cell else "")
+        if not parsed:
+            continue
+        name, sid, url = parsed
+        if sid not in societies:
+            societies[sid] = {
+                "name": name,
+                "description": None,
+                "category": None,
+                "contact_email": None,
+                "rubric_admin_url": url,
+            }
+
+        if not isinstance(start, datetime) or not isinstance(end, datetime):
+            continue
+
+        activities.append(
+            {
+                "society_id": sid,
+                "title": str(title).strip(),
+                "event_type": str(event_type).strip() if isinstance(event_type, str) else None,
+                "starts_at": start,
+                "ends_at": end,
+                "location": str(location).strip() if isinstance(location, str) else None,
+                "registration_url": str(ticket).strip() if isinstance(ticket, str) and ticket.strip() else None,
+            }
+        )
+
+    wb.close()
+
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    lines: list[str] = [
+        "-- Generated by scripts/build_seed_from_xlsx.py — do not hand-edit.",
+        "-- Source: Event Details + Club Details sheets (Rubric export).",
+        "",
+        "begin;",
+        "",
+    ]
+
+    soc_items = list(societies.items())
+    chunk = 80
+    for i in range(0, len(soc_items), chunk):
+        batch = soc_items[i : i + chunk]
+        lines.append(
+            "insert into public.societies (id, name, description, category, contact_email, rubric_admin_url, tags) values"
+        )
+        vals = []
+        for sid, s in batch:
+            cat = s["category"] if isinstance(s.get("category"), str) and str(s["category"]).strip() else None
+            society_tags = [cat] if cat else []
+            vals.append(
+                "  ("
+                + f"{sid}, "
+                + f"{sql_str(s['name'])}, "
+                + f"{sql_str(s['description'])}, "
+                + f"{sql_str(s['category'])}, "
+                + f"{sql_str(s['contact_email'])}, "
+                + f"{sql_str(s['rubric_admin_url'])}, "
+                + sql_text_array(society_tags)
+                + ")"
+            )
+        lines.append(",\n".join(vals) + ";")
+        lines.append("")
+
+    for i in range(0, len(activities), chunk):
+        batch = activities[i : i + chunk]
+        lines.append(
+            "insert into public.activities (society_id, title, event_type, starts_at, ends_at, location, registration_url, description, tags) values"
+        )
+        vals = []
+        for a in batch:
+            et = a["event_type"] if isinstance(a.get("event_type"), str) and str(a["event_type"]).strip() else None
+            activity_tags = [et] if et else []
+            vals.append(
+                "  ("
+                + f"{a['society_id']}, "
+                + f"{sql_str(a['title'])}, "
+                + f"{sql_str(a['event_type'])}, "
+                + f"{sql_ts(a['starts_at'])}, "
+                + f"{sql_ts(a['ends_at'])}, "
+                + f"{sql_str(a['location'])}, "
+                + f"{sql_str(a['registration_url'])}, "
+                + "NULL, "
+                + sql_text_array(activity_tags)
+                + ")"
+            )
+        lines.append(",\n".join(vals) + ";")
+        lines.append("")
+
+    lines.append("commit;")
+    lines.append("")
+
+    OUT_PATH.write_text("\n".join(lines), encoding="utf-8")
+    print(f"Wrote {OUT_PATH} ({len(societies)} societies, {len(activities)} activities)")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,3 @@
+# Python helpers (not required for Expo runtime)
+openpyxl>=3.1.0
+tzdata>=2025.1

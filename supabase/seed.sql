@@ -1,2 +1,3 @@
--- Local seed placeholder (optional). Add INSERTs when you want repeatable demo data.
-select 1;
+-- Non–Excel reference data (interest dictionary, feature flags, etc.) can go here.
+-- Societies + activities from the Rubric workbook are generated into ./seeds/from_xlsx.sql.
+-- Generate that file with:  python scripts/build_seed_from_xlsx.py [path-to-xlsx]

@@ -1,0 +1,62 @@
+---
+description: Use project-local skills under .agents (Matt Pocock + Supabase); optional vendor submodule fallback.
+alwaysApply: true
+---
+
+# Project agent skills
+
+Skill roots are **relative to the repo**. They are **not** auto-loaded like global Cursor skills: **read the matching `SKILL.md` with the Read tool** when the task fits, then follow that skill.
+
+## 1) Matt Pocock pack — **`.agents/skills/`**
+
+Categories: `engineering/`, `productivity/`, `misc/`, `personal/`, `in-progress/`, `deprecated/`. See **`.agents/skills/README.md`**.
+
+**First-time repo setup (optional):** if `CONTEXT.md`, `docs/adr/`, or triage labels are missing but the user wants those workflows, read and follow **`.agents/skills/engineering/setup-matt-pocock-skills/SKILL.md`**.
+
+### 1b) When to read which skill (core)
+
+| Situation | Read this file |
+|-----------|----------------|
+| Bug hunt, unclear failure, perf regression, “why does this happen?” | `.agents/skills/engineering/diagnose/SKILL.md` |
+| Tests-first work, red–green–refactor, new behaviour covered by tests | `.agents/skills/engineering/tdd/SKILL.md` |
+| Align on a change, sharpen domain language, `CONTEXT.md` / ADRs | `.agents/skills/engineering/grill-with-docs/SKILL.md` |
+| Same alignment, not code-specific | `.agents/skills/productivity/grill-me/SKILL.md` |
+| Turn conversation into a PRD (as defined in the skill) | `.agents/skills/engineering/to-prd/SKILL.md` |
+| Split a plan/spec into issues | `.agents/skills/engineering/to-issues/SKILL.md` |
+| Triage / label workflow for tickets | `.agents/skills/engineering/triage/SKILL.md` |
+| Architecture / “ball of mud” deepening pass | `.agents/skills/engineering/improve-codebase-architecture/SKILL.md` |
+| Explain unfamiliar code with system context | `.agents/skills/engineering/zoom-out/SKILL.md` |
+| Throwaway prototype (CLI or UI variations) | `.agents/skills/engineering/prototype/SKILL.md` |
+| Compact handoff for another agent | `.agents/skills/productivity/handoff/SKILL.md` |
+| User asks for ultra-compressed replies | `.agents/skills/productivity/caveman/SKILL.md` |
+| Authoring a new skill | `.agents/skills/productivity/write-a-skill/SKILL.md` |
+| Husky / pre-commit / lint-staged setup | `.agents/skills/misc/setup-pre-commit/SKILL.md` |
+| Migrate tests to @total-typescript/shoehorn | `.agents/skills/misc/migrate-to-shoehorn/SKILL.md` |
+| Block dangerous git via hooks (Claude Code–oriented) | `.agents/skills/misc/git-guardrails-claude-code/SKILL.md` |
+| Exercise / course scaffolding | `.agents/skills/misc/scaffold-exercises/SKILL.md` |
+
+### 1c) Personal, in-progress, deprecated (use when the user asks)
+
+| Situation | Read this file |
+|-----------|----------------|
+| Obsidian vault workflows | `.agents/skills/personal/obsidian-vault/SKILL.md` |
+| Edit / shape an article | `.agents/skills/personal/edit-article/SKILL.md` |
+| Writing: shape / beats / fragments / review (draft skills) | `.agents/skills/in-progress/writing-shape/SKILL.md`, `writing-beats`, `writing-fragments`, `review` (each has `SKILL.md`) |
+| Legacy / superseded workflows (only if user requests) | `.agents/skills/deprecated/` — see `README.md` there |
+
+## 2) Supabase official pack — **`.agents/agent-skills/skills/`**
+
+Upstream: [`supabase/agent-skills`](https://github.com/supabase/agent-skills). Your copy lives under **`.agents/agent-skills/`** (see **`.agents/agent-skills/README.md`**).
+
+| Situation | Read this file |
+|-----------|----------------|
+| Any Supabase work (Auth, DB, RLS, migrations, CLI, Edge Functions, Realtime, Storage, SSR clients, MCP) | `.agents/agent-skills/skills/supabase/SKILL.md` |
+| Postgres performance, indexes, pooling, RLS review, query tuning | `.agents/agent-skills/skills/supabase-postgres-best-practices/SKILL.md` |
+
+**Optional fallback:** if those paths are missing (e.g. fresh clone without `.agents`), use the git submodule copy: **`vendor/supabase-agent-skills/skills/...`** — run `git submodule update --init --depth 1 vendor/supabase-agent-skills`.
+
+## Rules
+
+- **Do not** paste the entire skill into chat unless the user asks; **read the file** and apply it.
+- If **multiple** skills apply (e.g. Supabase + `tdd`), read them **in a sensible order** and state briefly which you used.
+- If **none** apply, ignore this rule for that turn.
