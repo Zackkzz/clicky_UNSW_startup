@@ -1,11 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 import { Text, View } from '@/components/Themed';
+import { signOut } from '@/lib/auth';
 import { bundledArcRepository } from '@/lib/arc/bundled-repository';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function DiscoverScreen() {
+  const userEmail = useAuthStore((s) => s.user?.email);
+
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['arc', 'dataset'],
     queryFn: () => bundledArcRepository.loadAll(),
@@ -22,9 +27,21 @@ export default function DiscoverScreen() {
         <Text style={styles.cardTitle}>Supabase</Text>
         <Text style={styles.cardBody}>
           {isSupabaseConfigured()
-            ? 'Client configured (EXPO_PUBLIC_* env vars detected).'
+            ? userEmail
+              ? `Signed in as ${userEmail}`
+              : 'Client configured (EXPO_PUBLIC_* env vars detected).'
             : 'Not configured yet — copy .env.example to .env and add your project URL + anon key.'}
         </Text>
+        {userEmail ? (
+          <Pressable
+            onPress={async () => {
+              await signOut();
+              router.replace('/login');
+            }}
+            style={styles.signOut}>
+            <Text style={styles.signOutText}>Sign out</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {isPending ? <ActivityIndicator style={styles.loader} /> : null}
@@ -84,6 +101,15 @@ const styles = StyleSheet.create({
   cardBody: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  signOut: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  signOutText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9980FF',
   },
   sectionHeading: {
     marginTop: 8,

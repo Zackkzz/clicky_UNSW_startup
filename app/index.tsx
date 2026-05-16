@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useRef } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 /** Screen background — match design. */
@@ -7,17 +8,38 @@ const LAVENDER = '#A7A7FF';
 /** Logo circle + tagline text — match design. */
 const CREAM = '#FFFFD1';
 
+/** Time on this screen before auto-advancing to onboarding. */
+const AUTO_ADVANCE_MS = 2000;
+
 /**
  * Initial landing screen (matches product splash).
- * Tap anywhere to continue to the main app.
+ * Automatically transitions to onboarding after AUTO_ADVANCE_MS; tap to go immediately.
  */
 export default function InitialLandingScreen() {
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const progressedRef = useRef(false);
+
+  const goNext = () => {
+    if (progressedRef.current) return;
+    progressedRef.current = true;
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    router.replace('/onboarding-branded');
+  };
+
+  useEffect(() => {
+    navTimerRef.current = setTimeout(goNext, AUTO_ADVANCE_MS);
+    return () => {
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, []);
+
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityHint="Automatically continues shortly. Tap to skip wait."
       accessibilityLabel="Continue to next screen"
       style={styles.root}
-      onPress={() => router.push('/onboarding-branded')}
+      onPress={goNext}
     >
       <StatusBar style="dark" />
       <View style={styles.column}>

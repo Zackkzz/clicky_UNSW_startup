@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Placeholder Supabase env so Metro can bundle auth/client code in CI (not real credentials).
+env:
+  EXPO_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+
+jobs:
+  app:
+    name: Typecheck & web bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630cea9d9c06a354716fa9e2 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f443d9620 # v4.4.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Expo Router types & verify web export
+        run: npm run ci:export-web
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  supabase:
+    name: Supabase project
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630cea9d9c06a354716fa9e2 # v4.2.2
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1.6.0
+        with:
+          version: 2.98.2
+
+      - name: Verify Supabase layout
+        run: |
+          supabase --version
+          test -f supabase/config.toml
+          count=$(find supabase/migrations -maxdepth 1 -name '*.sql' | wc -l)
+          if [ "$count" -lt 1 ]; then
+            echo "Expected at least one SQL migration in supabase/migrations/"
+            exit 1
+          fi
+          echo "OK: $count migration file(s)"

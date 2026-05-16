@@ -1,6 +1,10 @@
-import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useRef } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+
+/** Pause on onboarding before transitioning to login. */
+const AUTO_ADVANCE_MS = 2000;
 
 /** Screen fill — match reference */
 const LAVENDER = "#B4A7FF";
@@ -57,15 +61,33 @@ function OutlinedHeadline({ label }: { label: string }) {
 
 /**
  * Onboarding marketing screen — headline copy only.
- * Tap anywhere to enter the main app.
+ * Automatically transitions to login after AUTO_ADVANCE_MS; tap to go immediately.
  */
 export default function OnboardingBrandedScreen() {
+    const navTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const progressedRef = useRef(false);
+
+    const goLogin = () => {
+        if (progressedRef.current) return;
+        progressedRef.current = true;
+        if (navTimerRef.current) clearTimeout(navTimerRef.current);
+        router.replace('/login');
+    };
+
+    useEffect(() => {
+        navTimerRef.current = setTimeout(goLogin, AUTO_ADVANCE_MS);
+        return () => {
+            if (navTimerRef.current) clearTimeout(navTimerRef.current);
+        };
+    }, []);
+
     return (
         <Pressable
             style={styles.root}
-            onPress={() => router.replace("/(tabs)")}
+            onPress={goLogin}
             accessibilityRole="button"
-            accessibilityLabel="Continue to app"
+            accessibilityHint="Automatically continues shortly. Tap to skip wait."
+            accessibilityLabel="Continue to sign in"
         >
             <StatusBar style="dark" />
             <View style={styles.inner}>

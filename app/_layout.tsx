@@ -5,10 +5,12 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { AppProviders } from '@/providers/AppProviders';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -52,25 +54,52 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <AppProviders>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack
-          screenOptions={{
-            contentStyle: { backgroundColor: '#A7A7FF' },
-          }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="onboarding-branded"
-            options={{
-              headerShown: false,
-              animation: 'slide_from_right',
-              contentStyle: { backgroundColor: '#B4A7FF' },
-            }}
-          />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </ThemeProvider>
-    </AppProviders>
+    <SafeAreaProvider>
+      <AppProviders>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack
+            screenOptions={{
+              contentStyle: { backgroundColor: '#A7A7FF' },
+            }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="onboarding-branded"
+              options={{
+                headerShown: false,
+                /** Entered from initial splash: cross-fade. */
+                animation: 'fade',
+                animationDuration: 680,
+                animationTypeForReplace: 'push',
+                contentStyle: { backgroundColor: '#B4A7FF' },
+              }}
+            />
+            <Stack.Screen
+              name="login"
+              options={{
+                headerShown: false,
+                /** Standard push: new screen moves in right → left. */
+                animation: Platform.select({
+                  ios: 'default',
+                  android: 'slide_from_right',
+                  default: 'default',
+                }),
+                animationTypeForReplace: 'push',
+                contentStyle: { backgroundColor: '#FFFFFF' },
+              }}
+            />
+            <Stack.Screen
+              name="alternative-login"
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+                contentStyle: { backgroundColor: '#FFFFFF' },
+              }}
+            />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          </Stack>
+        </ThemeProvider>
+      </AppProviders>
+    </SafeAreaProvider>
   );
 }

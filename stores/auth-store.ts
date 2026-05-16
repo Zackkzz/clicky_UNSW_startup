@@ -1,11 +1,24 @@
+import type { Session, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 type AuthState = {
-  userId: string | null;
-  setUserId: (userId: string | null) => void;
+  session: Session | null;
+  user: User | null;
+  isReady: boolean;
+  setSession: (session: Session | null) => void;
+  setReady: (ready: boolean) => void;
+  clear: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  userId: null,
-  setUserId: (userId) => set({ userId }),
+  session: null,
+  user: null,
+  isReady: false,
+  setSession: (session) =>
+    set({
+      session,
+      user: session?.user ?? null,
+    }),
+  setReady: (isReady) => set({ isReady }),
+  clear: () => set({ session: null, user: null }),
 }));
