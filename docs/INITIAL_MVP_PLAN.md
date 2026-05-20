@@ -2,6 +2,8 @@
 
 **Document purpose:** single source of truth for scope, experience, stories, tech choices, and delivery rhythm for the team.
 
+**See also:** [docs/README.md](./README.md) (index), [plans/ROADMAP.md](./plans/ROADMAP.md) (current build status), [specs/](./specs/) (auth, screens, technical).
+
 **Product pillars (from scope):**
 
 1. **Personalised event discovery** — interests from onboarding map to societies/activities; ticketing **opens external platforms** in v1.
@@ -63,7 +65,7 @@
 
 | ID | Feature | Notes |
 |----|---------|--------|
-| F1 | Auth & session | Email magic link and/or OAuth per institutional policy. |
+| F1 | Auth & session | **In progress:** email/password + zID mapping + Google OAuth. Spec: [specs/AUTH_SPEC.md](./specs/AUTH_SPEC.md). |
 | F2 | Onboarding | Pick interests; persist to profile. |
 | F3 | ARC content feed | Societies + activities list/detail from **bundled dummy** via repository. |
 | F4 | Personalisation v1 | Score/rank by tag overlap + recency + simple popularity. |
@@ -279,7 +281,7 @@
 
 ## 13. Open decisions (fill in as you learn ARC constraints)
 
-- Exact **auth** method allowed for students (magic link vs SSO).
+- Exact **auth** method allowed for students — **v1 implemented:** email/password + Google; institutional SSO TBD. See [specs/AUTH_SPEC.md](./specs/AUTH_SPEC.md).
 - **Scout** integration mechanism (embed vs link) and branding approval.
 - **Threading** model (flat vs one-level nested).
 - **Moderation** — who is first-line moderator (ARC vs you).

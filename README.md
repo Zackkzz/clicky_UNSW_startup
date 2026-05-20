@@ -2,6 +2,8 @@
 
 Native-first student app scaffold: **personalised ARC discovery**, **peer forum**, and **Scout-in-context** (per product plan in `docs/INITIAL_MVP_PLAN.md`).
 
+**Documentation:** [docs/README.md](docs/README.md) — plans, specs, roadmap, and schema.
+
 ## Stack
 
 - **Expo SDK 54** + **Expo Router** + **TypeScript**
