@@ -41,10 +41,10 @@ Cursor loads **`.cursor/rules/project-agent-skills.mdc`**, which maps tasks → 
 
 This repo includes a **Node-only** Docker setup so everyone gets the same toolchain without installing Node on the host. It is aimed at **Expo dev server + Metro** — not at running Android emulators or iOS simulators inside the container (those usually stay on the host, or you use a physical device).
 
-### Option A — VS Code / Cursor Dev Container (recommended)
+### Option A — VS Code (recommended)
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux).
-2. Open the repo folder in Cursor / VS Code.
+2. Open the repo folder in.
 3. **Command Palette** → **Dev Containers: Reopen in Container** (requires the Dev Containers extension in VS Code; Cursor supports the same flow when the feature is available).
 4. After the container builds, in the integrated terminal: `npm run start:tunnel` (easiest way for a phone to reach Metro through Docker networking) or `npm run start`.
 
