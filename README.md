@@ -24,19 +24,6 @@ Add your Supabase **Project URL** and **anon key** to `.env` as `EXPO_PUBLIC_SUP
 npm run start
 ```
 
-## Agent skills (Cursor)
-
-Everything is under **`.agents/`** (often gitignored locally—copy from your template or `npx skills add` as needed):
-
-| Path | Contents |
-|------|----------|
-| **`.agents/skills/`** | Matt Pocock engineering/productivity/misc skills (`README.md` at repo root of that pack). |
-| **`.agents/agent-skills/`** | Supabase official agent skills (`skills/supabase`, `skills/supabase-postgres-best-practices`). |
-
-**Optional:** **`vendor/supabase-agent-skills`** git submodule — same Supabase skills for machines where `.agents` is not checked in. After clone: `git submodule update --init --depth 1 vendor/supabase-agent-skills`.
-
-Cursor loads **`.cursor/rules/project-agent-skills.mdc`**, which maps tasks → which `SKILL.md` to read.
-
 ## Docker / Dev Container (virtual dev environment)
 
 This repo includes a **Node-only** Docker setup so everyone gets the same toolchain without installing Node on the host. It is aimed at **Expo dev server + Metro** — not at running Android emulators or iOS simulators inside the container (those usually stay on the host, or you use a physical device).
